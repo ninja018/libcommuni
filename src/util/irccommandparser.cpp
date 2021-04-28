@@ -32,6 +32,11 @@
 #include "irccore_p.h"
 #include <climits>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    #include <QRegularExpression>
+#endif
+
+
 IRC_BEGIN_NAMESPACE
 
 /*!
@@ -374,7 +379,11 @@ QString IrcCommandParser::syntax(const QString& command, Details details) const
         QString str = info.fullSyntax();
         if (details != Full) {
             if (details & NoTarget)
-                str.remove(QRegExp("\\[[^\\]]+\\]"));
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    str.remove(QRegExp("\\[[^\\]]+\\]"));
+#else
+    str.remove(QRegularExpression("\\[[^\\]]+\\]"));
+#endif
             if (details & NoPrefix)
                 str.remove("#");
             if (details & NoEllipsis)
@@ -413,6 +422,9 @@ void IrcCommandParser::removeCommand(IrcCommand::Type type, const QString& synta
 {
     Q_D(IrcCommandParser);
     bool changed = false;
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     QMutableMapIterator<QString, IrcCommandInfo> it(d->commands);
     while (it.hasNext()) {
         IrcCommandInfo cmd = it.next().value();
@@ -422,6 +434,21 @@ void IrcCommandParser::removeCommand(IrcCommand::Type type, const QString& synta
                 changed = true;
         }
     }
+
+#else
+
+    QMutableMultiMapIterator<QString, IrcCommandInfo> it(d->commands);
+    while (it.hasNext()) {
+        IrcCommandInfo cmd = it.next().value();
+        if (cmd.type == type && (syntax.isEmpty() || !syntax.compare(cmd.fullSyntax(), Qt::CaseInsensitive))) {
+            it.remove();
+            if (!d->commands.contains(cmd.command))
+                changed = true;
+        }
+    }
+
+#endif
+
     if (changed)
         emit commandsChanged(commands());
 }

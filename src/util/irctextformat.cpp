@@ -37,13 +37,19 @@
 #include "irctextformat.h"
 #include "ircpalette.h"
 #include "irccore_p.h"
-#if QT_VERSION >= 0x050000
-#include <QRegularExpression>
-#endif
 #include <QStringList>
-#include <QRegExp>
 #include <QUrl>
 #include "irc.h"
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    #include <QRegExp>
+#elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QRegularExpression>
+    #include <QRegExp>
+#else
+    #include <QRegularExpression>
+#endif
+
 
 IRC_BEGIN_NAMESPACE
 
@@ -113,6 +119,9 @@ static bool parseColors(const QString& message, int pos, int* len, int* fg = nul
         *fg = -1;
     if (bg)
         *bg = -1;
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     QRegExp rx(QLatin1String("(\\d{1,2})(?:,(\\d{1,2}))?"));
     int idx = rx.indexIn(message, pos);
     if (idx == pos) {
@@ -126,6 +135,25 @@ static bool parseColors(const QString& message, int pos, int* len, int* fg = nul
                 *bg = tmp;
         }
     }
+
+#else
+
+    QRegularExpression rx(QLatin1String("(\\d{1,2})(?:,(\\d{1,2}))?"));
+    auto match = rx.match(message, pos);
+    if (match.hasMatch()) {
+        *len = match.captured(1).size();
+        if (fg)
+            *fg = match.captured(1).toInt();
+        if (bg) {
+            bool ok = false;
+            int tmp = match.captured(2).toInt(&ok);
+            if (ok)
+                *bg = tmp;
+        }
+    }
+
+#endif
+
     return *len > 0;
 }
 
@@ -146,8 +174,8 @@ static QString parseUrls(const QString& message, const QString& pattern, QList<Q
     while (it.hasNext()) {
         QRegularExpressionMatch match = it.next();
         QString protocol;
-        if (match.capturedRef(2).isEmpty()) {
-            QStringRef link = match.capturedRef(1);
+        if (match.captured(2).isEmpty()) {
+            QString link = match.captured(1);
             if (link.startsWith(QStringLiteral("ftp."), Qt::CaseInsensitive))
                 protocol = QStringLiteral("ftp://");
             else if (link.contains(QStringLiteral("@")))

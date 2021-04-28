@@ -31,9 +31,14 @@
 #include "ircconnection.h"
 #include "ircmessage.h"
 #include "irccore_p.h"
-#include <QTextCodec>
 #include <QMetaEnum>
 #include <QDebug>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QTextCodec>
+#else
+    #include <QStringConverter>
+#endif
 
 IRC_BEGIN_NAMESPACE
 

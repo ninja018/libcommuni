@@ -14,11 +14,16 @@
 #include "ircmessage.h"
 #include "ircfilter.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
-#include <QtCore/QTextCodec>
 #include <QtCore/QScopedPointer>
 #ifndef QT_NO_SSL
 #include <QtNetwork/QSslSocket>
+#endif
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+    #include <QtCore/QTextCodec>
+#else
+    #include <QRegularExpression>
 #endif
 
 #include "tst_ircdata.h"
@@ -331,8 +336,11 @@ void tst_IrcConnection::testEncoding_data()
     QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-15") << false;
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     foreach (const QByteArray& codec, QTextCodec::availableCodecs())
         QTest::newRow(codec) << codec << codec << true;
+#endif
 }
 
 void tst_IrcConnection::testEncoding()
@@ -1335,7 +1343,7 @@ void tst_IrcConnection::testMessageComposer()
     QCOMPARE(filter.values.value("account").toString(), QString("qtaccountant"));
     QEXPECT_FAIL("", "RPL_WHOISHOST :is connecting from *@88.95.51.136 88.95.51.136", Continue);
     QCOMPARE(filter.values.value("address").toString(), QString("88.95.51.136"));
-    QCOMPARE(filter.values.value("since").toDateTime(), QDateTime::fromTime_t(1440706032));
+    QCOMPARE(filter.values.value("since").toDateTime(), QDateTime::fromSecsSinceEpoch(1440706032));
     QCOMPARE(filter.values.value("idle").toInt(), 15);
     QCOMPARE(filter.values.value("secure").toBool(), true);
     QCOMPARE(filter.values.value("channels").toStringList(), QStringList() << "+#jpnurmi");
@@ -1770,17 +1778,29 @@ void tst_IrcConnection::testDebug()
 
     IrcConnection connection;
     dbg << &connection;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcConnection\\(0x[0-9A-Fa-f]+\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcConnection\\(0x[0-9A-Fa-f]+\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     connection.setHost("irc.freenode.net");
     dbg << &connection;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcConnection\\(0x[0-9A-Fa-f]+, irc.freenode.net\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcConnection\\(0x[0-9A-Fa-f]+, irc.freenode.net\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     connection.setDisplayName("Freenode");
     dbg << &connection;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcConnection\\(0x[0-9A-Fa-f]+, Freenode\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcConnection\\(0x[0-9A-Fa-f]+, Freenode\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     dbg << IrcConnection::Connected;

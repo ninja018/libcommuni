@@ -11,12 +11,17 @@
 #include "irccommand.h"
 #include "ircconnection.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
 #include "tst_ircclientserver.h"
 #include "tst_ircdata.h"
 #ifdef Q_OS_LINUX
 #include "ircnetwork_p.h"
 #endif // Q_OS_LINUX
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+#else
+    #include <QRegularExpression>
+#endif
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 namespace Qt {
@@ -440,12 +445,20 @@ void tst_IrcNetwork::testDebug()
 
     IrcConnection connection;
     dbg << connection.network();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcNetwork\\(0x[0-9A-Fa-f]+\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcNetwork\\(0x[0-9A-Fa-f]+\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     connection.network()->setObjectName("obj");
     dbg << connection.network();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcNetwork\\(0x[0-9A-Fa-f]+, name=obj\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcNetwork\\(0x[0-9A-Fa-f]+, name=obj\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
 #ifdef Q_OS_LINUX

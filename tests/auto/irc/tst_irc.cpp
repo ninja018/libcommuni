@@ -12,7 +12,11 @@
 #include "ircmodel.h"
 #include "ircutil.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+#else
+    #include <QRegularExpression>
+#endif
 
 class tst_Irc : public QObject
 {

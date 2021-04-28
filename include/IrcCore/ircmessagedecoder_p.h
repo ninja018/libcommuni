@@ -31,7 +31,12 @@
 
 #include <IrcGlobal>
 #include <QtCore/qbytearray.h>
-#include <QtCore/qtextcodec.h>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QTextCodec>
+#else
+    #include <QStringConverter>
+#endif
 
 IRC_BEGIN_NAMESPACE
 

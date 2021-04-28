@@ -9,7 +9,13 @@
 
 #include "ircuser.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+#else
+    #include <QRegularExpression>
+#endif
+
 #ifdef Q_OS_LINUX
 #include "ircuser_p.h"
 #endif // Q_OS_LINUX
@@ -64,12 +70,20 @@ void tst_IrcUser::testDebug()
 
     IrcUser user;
     dbg << &user;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcUser\\(0x[0-9A-Fa-f]+\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcUser\\(0x[0-9A-Fa-f]+\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     user.setObjectName("obj");
     dbg << &user;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcUser\\(0x[0-9A-Fa-f]+, name=obj\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcUser\\(0x[0-9A-Fa-f]+, name=obj\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
 #ifdef Q_OS_LINUX

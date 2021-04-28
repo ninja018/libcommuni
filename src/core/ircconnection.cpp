@@ -39,13 +39,21 @@
 #include "irccore_p.h"
 #include "irc.h"
 #include <QLocale>
-#include <QRegExp>
 #include <QDateTime>
 #include <QTcpSocket>
-#include <QTextCodec>
 #include <QMetaObject>
 #include <QMetaMethod>
 #include <QMetaEnum>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QRegExp>
+    #include <QtCore/QTextCodec>
+#else
+    #include <QRegularExpression>
+    #include <QStringConverter>
+    #include <QStringDecoder>
+#endif
+
 #ifndef QT_NO_SSL
 #include <QSslSocket>
 #include <QSslError>
@@ -365,7 +373,12 @@ void IrcConnectionPrivate::_irc_filterDestroyed(QObject* filter)
 
 static bool parseServer(const QString& server, QString* host, int* port, bool* ssl)
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QStringList p = server.split(QRegExp("[: ]"), Qt::SkipEmptyParts);
+#else
+    QStringList p = server.split(QRegularExpression("[: ]"), Qt::SkipEmptyParts);
+#endif
+
     *host = p.value(0);
     *ssl = p.value(1).startsWith(QLatin1Char('+'));
     bool ok = false;
@@ -1456,9 +1469,22 @@ bool IrcConnection::sendCommand(IrcCommand* command)
         if (filtered) {
             res = false;
         } else {
-            QTextCodec* codec = QTextCodec::codecForName(command->encoding());
-            Q_ASSERT(codec);
-            res = sendData(codec->fromUnicode(command->toString()));
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QTextCodec* codec = QTextCodec::codecForName(command->encoding());
+    Q_ASSERT(codec);
+    res = sendData(codec->fromUnicode(command->toString()));
+#else
+    std::optional<QStringConverter::Encoding> codec = QStringConverter::encodingForName(command->encoding());
+    Q_ASSERT(codec.has_value());
+
+    auto toCodec = QStringDecoder(codec.value());
+    QByteArray encodedCommand = command->toString().toLatin1();
+    QString decodedCommand = toCodec(encodedCommand);
+    res = sendData(decodedCommand.toLatin1());
+
+#endif
+
         }
         if (!command->parent())
             command->deleteLater();

@@ -9,7 +9,12 @@
 
 #include "ircchannel.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+#else
+    #include <QRegularExpression>
+#endif
+
 
 class tst_IrcChannel : public QObject
 {
@@ -57,6 +62,8 @@ void tst_IrcChannel::testDebug()
     QCOMPARE(str.trimmed(), QString::fromLatin1("IrcChannel(0x0)"));
     str.clear();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     IrcChannel channel;
     dbg << &channel;
     QVERIFY(QRegExp("IrcChannel\\(0x[0-9A-Fa-f]+\\) ").exactMatch(str));
@@ -72,6 +79,26 @@ void tst_IrcChannel::testDebug()
     dbg << &channel;
     QVERIFY(QRegExp("IrcChannel\\(0x[0-9A-Fa-f]+, name=obj, title=#communi\\) ").exactMatch(str));
     str.clear();
+
+#else
+
+    IrcChannel channel;
+    dbg << &channel;
+    QVERIFY(QRegularExpression("IrcChannel\\(0x[0-9A-Fa-f]+\\) ").match(str).hasMatch());
+    str.clear();
+
+    channel.setObjectName("obj");
+    dbg << &channel;
+    QVERIFY(QRegularExpression("IrcChannel\\(0x[0-9A-Fa-f]+, name=obj\\) ").match(str).hasMatch());
+    str.clear();
+
+    channel.setPrefix("#");
+    channel.setName("communi");
+    dbg << &channel;
+    QVERIFY(QRegularExpression("IrcChannel\\(0x[0-9A-Fa-f]+, name=obj, title=#communi\\) ").match(str).hasMatch());
+    str.clear();
+
+#endif
 }
 
 QTEST_MAIN(tst_IrcChannel)

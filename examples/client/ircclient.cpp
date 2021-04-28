@@ -238,7 +238,7 @@ void IrcClient::createLayout()
     QWidget* container = new QWidget(this);
     QVBoxLayout* layout = new QVBoxLayout(container);
     layout->setSpacing(0);
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(splitter);
     layout->addWidget(lineEdit);
 

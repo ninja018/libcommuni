@@ -33,8 +33,13 @@
 #include <IrcConnection>
 #include <QtCore/qdebug.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qregexp.h>
 #include <QtCore/qdatetime.h>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/qregexp.h>
+#else
+    #include <QRegularExpression>
+#endif
 
 IRC_BEGIN_NAMESPACE
 
@@ -143,7 +148,11 @@ static bool irc_debug_enabled(IrcConnection* c, uint l)
         dbg_init = true;
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     return l <= dbg_level && (dbg_name.isEmpty() || QRegExp(dbg_name, Qt::CaseInsensitive, QRegExp::Wildcard).exactMatch(c->displayName()));
+#else
+    return l <= dbg_level && (dbg_name.isEmpty() || QRegularExpression(dbg_name, QRegularExpression::CaseInsensitiveOption).match(c->displayName()).hasMatch());
+#endif
 }
 
 #define ircDebug(Connection, Flag) IrcDebug(Connection, Flag)

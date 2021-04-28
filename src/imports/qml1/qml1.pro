@@ -3,7 +3,10 @@
 ######################################################################
 
 TARGET = communiplugin
-QT = core network declarative
+
+lessThan(QT_MAJOR_VERSION, 6):QT = core network declarative
+else:QT = core network qml quick
+
 TARGETPATH = Communi
 DESTDIR = ../../../imports/$$TARGETPATH
 

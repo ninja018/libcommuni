@@ -30,13 +30,13 @@
 #define IRCUSER_H
 
 #include <IrcGlobal>
+#include <IrcChannel>
 #include <QtCore/qobject.h>
 #include <QtCore/qmetatype.h>
 #include <QtCore/qscopedpointer.h>
 
 IRC_BEGIN_NAMESPACE
 
-class IrcChannel;
 class IrcUserPrivate;
 
 class IRC_MODEL_EXPORT IrcUser : public QObject

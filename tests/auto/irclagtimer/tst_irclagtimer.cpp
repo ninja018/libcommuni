@@ -74,9 +74,14 @@ void tst_IrcLagTimer::testLag()
     QVERIFY(clientSocket->waitForBytesWritten(1000));
     QVERIFY(serverSocket->waitForReadyRead(1000));
 
-    QRegExp rx("PING communi/(\\d+)");
     QString written = QString::fromUtf8(serverSocket->readAll());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QRegExp rx("PING communi/(\\d+)");
     QVERIFY(rx.indexIn(written) != -1);
+#else
+    QRegularExpression rx("PING communi/(\\d+)");
+    QVERIFY(rx.match(written).hasMatch());
+#endif
 
     waitForWritten(QString(":irc.ser.ver PONG communi communi/%1").arg(QDateTime::currentMSecsSinceEpoch() - 1234ll).toUtf8());
     QVERIFY(timer.lag() >= 1234ll);

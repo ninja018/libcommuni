@@ -11,9 +11,14 @@
 #include "ircconnection.h"
 #include "ircprotocol.h"
 #include <QtTest/QtTest>
-#include <QtCore/QRegExp>
-#include <QtCore/QTextCodec>
 #include <QtCore/QScopedPointer>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QRegExp>
+    #include <QtCore/QTextCodec>
+#else
+    #include <QRegularExpression>
+#endif
 
 #ifdef Q_OS_LINUX
 #include "ircmessagedecoder_p.h"
@@ -234,8 +239,10 @@ void tst_IrcMessage::testEncoding_data()
     QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-15") << false;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     foreach (const QByteArray& codec, QTextCodec::availableCodecs())
         QTest::newRow(codec) << codec << codec << true;
+#endif
 }
 
 void tst_IrcMessage::testEncoding()
@@ -1166,27 +1173,47 @@ void tst_IrcMessage::testDebug()
 
     IrcMessage message(nullptr);
     dbg << &message;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcMessage\\(0x[0-9A-Fa-f]+, flags=\\(None\\)\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcMessage\\(0x[0-9A-Fa-f]+, flags=\\(None\\)\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     message.setObjectName("foo");
     dbg << &message;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\)\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\)\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     message.setPrefix("nick!ident@host");
     dbg << &message;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\), prefix=nick!ident@host\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\), prefix=nick!ident@host\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     message.setCommand("COMMAND");
     dbg << &message;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\), prefix=nick!ident@host, command=COMMAND\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(None\\), prefix=nick!ident@host, command=COMMAND\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     message.setFlags(IrcMessage::Own | IrcMessage::Playback | IrcMessage::Implicit);
     dbg << &message;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QVERIFY(QRegExp("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(Own\\|Playback\\|Implicit\\), prefix=nick!ident@host, command=COMMAND\\) ").exactMatch(str));
+#else
+    QVERIFY(QRegularExpression("IrcMessage\\(0x[0-9A-Fa-f]+, name=foo, flags=\\(Own\\|Playback\\|Implicit\\), prefix=nick!ident@host, command=COMMAND\\) ").match(str).hasMatch());
+#endif
     str.clear();
 
     dbg << IrcMessage::None;
