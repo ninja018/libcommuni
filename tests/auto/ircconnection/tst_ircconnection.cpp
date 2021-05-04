@@ -129,7 +129,11 @@ void tst_IrcConnection::testDefaults()
     QVERIFY(connection.realName().isNull());
     QVERIFY(connection.password().isNull());
     QVERIFY(connection.displayName().isNull());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCOMPARE(connection.encoding(), QByteArray("ISO-8859-15"));
+#else
+    QCOMPARE(connection.encoding(), QByteArray("ISO-8859-1"));
+#endif
     QCOMPARE(connection.status(), IrcConnection::Inactive);
     QVERIFY(!connection.isActive());
     QVERIFY(!connection.isConnected());
@@ -332,10 +336,17 @@ void tst_IrcConnection::testEncoding_data()
     QTest::addColumn<QByteArray>("actual");
     QTest::addColumn<bool>("supported");
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QTest::newRow("null") << QByteArray() << QByteArray("ISO-8859-15") << false;
     QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-15") << false;
+#else
+    QTest::newRow("null") << QByteArray() << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-1") << false;
+#endif
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     foreach (const QByteArray& codec, QTextCodec::availableCodecs())

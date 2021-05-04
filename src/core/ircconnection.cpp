@@ -259,7 +259,11 @@ extern bool irc_is_supported_encoding(const QByteArray& encoding); // ircmessage
 
 #ifndef IRC_DOXYGEN
 IrcConnectionPrivate::IrcConnectionPrivate() :
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     encoding("ISO-8859-15"),
+#else
+    encoding("ISO-8859-1"),
+#endif
     host(),
     userName(),
     nickName(),

@@ -105,7 +105,11 @@ void tst_IrcMessage::testDefaults()
     QVERIFY(!msg.connection());
     QCOMPARE(msg.type(), IrcMessage::Unknown);
     QCOMPARE(msg.flags(), IrcMessage::None);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCOMPARE(msg.encoding(), QByteArray("ISO-8859-15"));
+#else
+    QCOMPARE(msg.encoding(), QByteArray("ISO-8859-1"));
+#endif
     QVERIFY(msg.prefix().isNull());
     QVERIFY(msg.nick().isNull());
     QVERIFY(msg.ident().isNull());
@@ -235,13 +239,19 @@ void tst_IrcMessage::testEncoding_data()
     QTest::addColumn<QByteArray>("actual");
     QTest::addColumn<bool>("supported");
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QTest::newRow("null") << QByteArray() << QByteArray("ISO-8859-15") << false;
     QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-15") << false;
     QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-15") << false;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     foreach (const QByteArray& codec, QTextCodec::availableCodecs())
         QTest::newRow(codec) << codec << codec << true;
+#else
+    QTest::newRow("null") << QByteArray() << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("empty") << QByteArray("") << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("space") << QByteArray(" ") << QByteArray("ISO-8859-1") << false;
+    QTest::newRow("invalid") << QByteArray("invalid") << QByteArray("ISO-8859-1") << false;
 #endif
 }
 
@@ -267,7 +277,11 @@ void tst_IrcMessage::testDecoder_data()
     QTest::newRow("windows-1251") << QByteArray("windows-1251") << QByteArray("7+Xt8eju7eXw4Owg7+7k5OXr/O375Q==");
     QTest::newRow("EUC-JP") << QByteArray("EUC-JP") << QByteArray("pKSkxKTHpOKkyaSzpMek4qGhpbml3qXbyMc=");
     QTest::newRow("Shift-JIS") << QByteArray("Shift-JIS") << QByteArray("lbaOmoNSgVuDaJVcg1aDdINn");
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QTest::newRow("ISO-8859-15") << QByteArray("ISO-8859-15") << QByteArray("5Gl0aWVucORpduQ="); // TODO: QByteArray("5OQ=");
+#else
+    QTest::newRow("ISO-8859-1") << QByteArray("ISO-8859-1") << QByteArray("5Gl0aWVucORpduQ="); // TODO: QByteArray("5OQ=");
+#endif
 }
 
 void tst_IrcMessage::testDecoder()

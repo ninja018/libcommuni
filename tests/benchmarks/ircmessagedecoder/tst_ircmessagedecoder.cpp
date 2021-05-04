@@ -52,9 +52,16 @@ void tst_IrcMessageDecoder::testDecode()
     QFETCH(QByteArray, data);
 
     IrcMessageDecoder decoder;
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QBENCHMARK {
         decoder.decode(data, "ISO-8859-15");
     }
+#else
+    QBENCHMARK {
+        decoder.decode(data, "ISO-8859-1");
+    }
+#endif
 }
 
 QTEST_MAIN(tst_IrcMessageDecoder)
